@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
-from myanmar import converter
+from myanmar_tools import ZawgyiConverter
 
 app = FastAPI()
+converter = ZawgyiConverter()
 
 class ConvertRequest(BaseModel):
     type: str  # "ztu" or "utz"
@@ -11,10 +12,12 @@ class ConvertRequest(BaseModel):
 @app.post("/")
 async def convert_text(request: ConvertRequest):
     if request.type == "ztu":
-        converted = converter.zg2uni(request.text)
+        # Zawgyi to Unicode
+        converted = converter.convert(request.text)
     elif request.type == "utz":
-        converted = converter.uni2zg(request.text)
+        # Unicode to Zawgyi is not directly supported by myanmar-tools
+        return {"error": "Unicode to Zawgyi conversion is not supported by myanmar-tools."}
     else:
-        return {"error": "Invalid conversion type. Use 'ztu' or 'utz'."}
-    
+        return {"error": "Invalid type. Use 'ztu' only."}
+
     return {"converted": converted}
